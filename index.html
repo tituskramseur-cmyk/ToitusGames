@@ -5,44 +5,154 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Embedded Browser</title>
     <style>
-        body { margin: 0; }
-        #navigation { position: fixed; top: 0; left: 0; right: 0; background: #ccc; padding: 10px; }
-        #addr { width: 70%; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            font-family: Arial, sans-serif;
+            background: #333;
+        }
+        
+        #navigation {
+            background: #2c3e50;
+            padding: 12px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            flex-shrink: 0;
+        }
+        
+        button {
+            padding: 8px 15px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+            white-space: nowrap;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        #addr {
+            flex: 1;
+            min-width: 250px;
+            padding: 8px 12px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            font-size: 14px;
+            background: #ecf0f1;
+        }
+        
+        #browser {
+            flex: 1;
+            width: 100%;
+            border: none;
+            background: white;
+        }
     </style>
 </head>
 <body>
     <div id="navigation">
-        <button onclick="goBack()">Back</button>
-        <button onclick="goForward()">Forward</button>
-        <button onclick="reload()">Refresh</button>
-        <input type="text" id="addr" placeholder="Enter URL..." />
+        <button onclick="goBack()">← Back</button>
+        <button onclick="goForward()">Forward →</button>
+        <button onclick="reload()">↻ Refresh</button>
+        <input type="text" id="addr" placeholder="Enter URL or search term..." />
         <button onclick="loadURL()">Go</button>
     </div>
-    <iframe id="browser" src="https://www.wikipedia.org" style="width: 100%; height: calc(100% - 50px); border: none;"></iframe>
+    <iframe id="browser" src="https://www.wikipedia.org"></iframe>
+    
     <script>
         const iframe = document.getElementById('browser');
         const addr = document.getElementById('addr');
 
+        const allowedDomains = [
+            'wikipedia.org',
+            'w3schools.com',
+            'github.com',
+            'codepen.io',
+            'github.io',
+            'bing.com',
+            'duckduckgo.com',
+            'ecosia.org'
+        ];
+
         function loadURL() {
-            const url = addr.value;
-            if (url.match(/^(https?:\/\/)?(www\.)?(wikipedia\.org|w3schools\.com|github\.com|codepen\.io|pages\.github\.com)/)) {
-                iframe.src = url;
-            } else {
-                alert('Only Wikipedia, W3Schools, GitHub, CodePen, and GitHub Pages are allowed.');
+            let input = addr.value.trim();
+            if (!input) {
+                alert('Please enter a URL or search term');
+                return;
+            }
+
+            let url = input;
+
+            if (!input.startsWith('http://') && !input.startsWith('https://') && !input.includes('.')) {
+                url = 'https://www.duckduckgo.com/?q=' + encodeURIComponent(input);
+            } else if (!input.startsWith('http://') && !input.startsWith('https://')) {
+                url = 'https://' + input;
+            }
+
+            try {
+                const urlObj = new URL(url);
+                const hostname = urlObj.hostname;
+                
+                if (allowedDomains.some(domain => hostname.includes(domain))) {
+                    iframe.src = url;
+                    addr.value = url;
+                } else {
+                    alert('This site is not allowed. Supported: Wikipedia, W3Schools, GitHub, CodePen, Bing, DuckDuckGo, Ecosia');
+                }
+            } catch (e) {
+                alert('Invalid URL');
             }
         }
 
         function goBack() {
-            iframe.contentWindow.history.back();
+            try {
+                iframe.contentWindow.history.back();
+            } catch (e) {
+                console.log('Cannot go back');
+            }
         }
 
         function goForward() {
-            iframe.contentWindow.history.forward();
+            try {
+                iframe.contentWindow.history.forward();
+            } catch (e) {
+                console.log('Cannot go forward');
+            }
         }
 
         function reload() {
-            iframe.contentWindow.location.reload();
+            try {
+                iframe.contentWindow.location.reload();
+            } catch (e) {
+                iframe.src = iframe.src;
+            }
         }
+
+        addr.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                loadURL();
+            }
+        });
     </script>
 </body>
 </html>
