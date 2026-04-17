@@ -5,48 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Embedded Browser</title>
     <style>
-        body { display: flex; flex-direction: column; align-items: center; }
-        iframe { width: 100%; height: 80vh; border: none; }
-        button { margin: 5px; }
+        body { margin: 0; }
+        #navigation { position: fixed; top: 0; left: 0; right: 0; background: #ccc; padding: 10px; }
+        #addr { width: 70%; }
     </style>
 </head>
 <body>
-    <h1>Embedded Browser</h1>
-    <div>
+    <div id="navigation">
         <button onclick="goBack()">Back</button>
         <button onclick="goForward()">Forward</button>
-        <button onclick="refresh()">Refresh</button>
+        <button onclick="reload()">Refresh</button>
+        <input type="text" id="addr" placeholder="Enter URL..." />
+        <button onclick="loadURL()">Go</button>
     </div>
-    <iframe id="browser-frame" src="https://www.google.com"></iframe>
+    <iframe id="browser" src="https://www.wikipedia.org" style="width: 100%; height: calc(100% - 50px); border: none;"></iframe>
     <script>
-        const frame = document.getElementById('browser-frame');
+        const iframe = document.getElementById('browser');
+        const addr = document.getElementById('addr');
 
-        frame.onload = function() {
-            frame.contentWindow.history.pushState = function() { /* do nothing */ };
-            frame.contentWindow.history.replaceState = function() { /* do nothing */ };
-        };
+        function loadURL() {
+            const url = addr.value;
+            if (url.match(/^(https?:\/\/)?(www\.)?(wikipedia\.org|w3schools\.com|github\.com|codepen\.io|pages\.github\.com)/)) {
+                iframe.src = url;
+            } else {
+                alert('Only Wikipedia, W3Schools, GitHub, CodePen, and GitHub Pages are allowed.');
+            }
+        }
 
         function goBack() {
-            frame.contentWindow.history.back();
+            iframe.contentWindow.history.back();
         }
 
         function goForward() {
-            frame.contentWindow.history.forward();
+            iframe.contentWindow.history.forward();
         }
 
-        function refresh() {
-            frame.contentWindow.location.reload();
+        function reload() {
+            iframe.contentWindow.location.reload();
         }
-
-        frame.addEventListener('load', function() {
-            const links = frame.contentDocument.querySelectorAll('a');
-            links.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    frame.src = this.href;
-                });
-            });
-        });
     </script>
 </body>
 </html>
