@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Embedded Browser</title>
+    <style>
+        body { display: flex; flex-direction: column; align-items: center; }
+        iframe { width: 100%; height: 80vh; border: none; }
+        button { margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Embedded Browser</h1>
+    <div>
+        <button onclick="goBack()">Back</button>
+        <button onclick="goForward()">Forward</button>
+        <button onclick="refresh()">Refresh</button>
+    </div>
+    <iframe id="browser-frame" src="https://www.google.com"></iframe>
+    <script>
+        const frame = document.getElementById('browser-frame');
+
+        frame.onload = function() {
+            frame.contentWindow.history.pushState = function() { /* do nothing */ };
+            frame.contentWindow.history.replaceState = function() { /* do nothing */ };
+        };
+
+        function goBack() {
+            frame.contentWindow.history.back();
+        }
+
+        function goForward() {
+            frame.contentWindow.history.forward();
+        }
+
+        function refresh() {
+            frame.contentWindow.location.reload();
+        }
+
+        frame.addEventListener('load', function() {
+            const links = frame.contentDocument.querySelectorAll('a');
+            links.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    frame.src = this.href;
+                });
+            });
+        });
+    </script>
+</body>
+</html>
